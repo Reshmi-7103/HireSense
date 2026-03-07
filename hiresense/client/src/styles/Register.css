@@ -1,0 +1,143 @@
+@import "./Login.css";
+
+/* ================= MAIN LAYOUT ================= */
+
+.register-layout {
+  min-height: 100vh;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  background: linear-gradient(120deg, #030711, #071427, #0b172b);
+}
+
+/* ================= REGISTER BOX ================= */
+
+.register-box {
+  width: 100%;
+  max-width: 800px;
+
+  margin: auto;
+
+  background: rgba(7, 20, 39, 0.85);
+  border: 1px solid rgba(100, 255, 218, 0.25);
+  border-radius: 22px;
+
+  padding: 40px;
+
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+  color: #e5e7eb;
+
+  backdrop-filter: blur(8px);
+}
+
+/* ================= HEADING ================= */
+
+.register-box h1 {
+  text-align: center;
+  color: #64ffda;
+  margin-bottom: 6px;
+  font-size: 32px;
+}
+
+.register-box .subtitle {
+  text-align: center;
+  color: #b0c4de;
+  margin-bottom: 28px;
+  font-size: 15px;
+}
+
+/* ================= GRID ================= */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.full {
+  grid-column: span 2;
+}
+
+/* ================= RIGHT PANEL ================= */
+
+.register-info {
+  background: linear-gradient(135deg, #020617, #071427);
+
+  padding: 60px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  color: white;
+}
+
+.register-info h2 {
+  font-size: 38px;
+  color: #64ffda;
+  margin-bottom: 20px;
+}
+
+.register-info p {
+  font-size: 17px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin-bottom: 30px;
+}
+
+.register-info ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 40px;
+}
+
+.register-info li {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.quote {
+  font-style: italic;
+  color: #94a3b8;
+  border-left: 3px solid #64ffda;
+  padding-left: 15px;
+}
+
+/* ================= RESPONSIVE ================= */
+/* ================= RESPONSIVE REGISTER ================= */
+
+@media (max-width: 1024px) {
+  .register-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .register-info {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .register-box {
+    max-width: 100%;
+    padding: 24px 20px;
+  }
+
+  .register-box h1 {
+    font-size: 24px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field input {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .register-box button {
+    padding: 12px;
+    font-size: 15px;
+  }
+}

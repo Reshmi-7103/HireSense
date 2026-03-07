@@ -1,0 +1,129 @@
+/* ================= CONTACT PAGE ================= */
+
+.contact-page {
+  min-height: 100vh;
+  background: linear-gradient(120deg, #030711, #071427, #0b172b);
+  color: #e5e7eb;
+  padding: 120px 80px 80px;
+}
+
+/* Heading */
+.contact-title {
+  text-align: center;
+  font-size: 56px;
+  font-weight: 800;
+  color: #64ffda;
+  margin-bottom: 60px;
+  text-shadow: 0 0 20px rgba(100, 255, 218, 0.4);
+}
+
+/* Main Grid */
+.contact-container {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+}
+
+/* Left Form Card */
+.contact-form {
+  background: rgba(7, 20, 39, 0.75);
+  border: 1px solid rgba(100, 255, 218, 0.2);
+  border-radius: 20px;
+  padding: 35px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.contact-form h2 {
+  color: #64ffda;
+  margin-bottom: 25px;
+  font-size: 26px;
+}
+
+/* Inputs */
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 18px;
+  background: #0b1b2a;
+  border: 1px solid #2b3b4a;
+  border-radius: 10px;
+  color: white;
+  font-size: 15px;
+  outline: none;
+  transition: border 0.3s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  border-color: #64ffda;
+}
+
+/* Button */
+.contact-form button {
+  width: 100%;
+  padding: 14px;
+  background: #64ffda;
+  color: #020617;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.contact-form button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(100, 255, 218, 0.4);
+}
+
+/* Right Info Cards */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info-card {
+  background: rgba(7, 20, 39, 0.75);
+  border: 1px solid rgba(100, 255, 218, 0.2);
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.info-card h3 {
+  color: #64ffda;
+  margin-bottom: 8px;
+}
+
+.info-card p {
+  color: #cbd5e1;
+}
+
+/* Footer Note */
+.contact-footer {
+  margin-top: 60px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+  .contact-page {
+    padding: 120px 30px 60px;
+  }
+
+  .contact-title {
+    font-size: 42px;
+  }
+
+  .contact-container {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,16 @@
+node_modules
+*.zip
+.env
+dist
+build
+*.log
+.vscode
+.DS_Store
+venv/
+__pycache__/
+*.pyc
+node_modules/
+.env
+*.zip
+dist/
+build/

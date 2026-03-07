@@ -1,0 +1,136 @@
+/* PAGE BACKGROUND */
+
+.resume-page{
+ min-height:100vh;
+ width:100%;
+ background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+ display:flex;
+ flex-direction:column;
+}
+
+/* WRAPPER */
+
+.resume-wrapper{
+ width:100%;
+ min-height:calc(100vh - 70px);
+ display:flex;
+ justify-content:center;
+ align-items:flex-start;
+ padding:40px;
+}
+
+/* GLASS CARD */
+
+.resume-card{
+ width:100%;
+ max-width:1200px;
+ min-height:600px;
+ background:rgba(255,255,255,0.08);
+ backdrop-filter:blur(12px);
+ padding:40px;
+ border-radius:20px;
+ text-align:center;
+ box-shadow:0 10px 40px rgba(0,0,0,0.4);
+ display:flex;
+ flex-direction:column;
+ justify-content:flex-start;
+ align-items:center;
+ animation:fadeIn 0.6s ease;
+}
+/* TITLE */
+
+.title{
+ color:white;
+ margin-bottom:25px;
+}
+
+/* INPUTS */
+
+.role-input,
+.file-input{
+ width:100%;
+ padding:12px;
+ margin:10px 0;
+ border:none;
+ border-radius:10px;
+ background:rgba(255,255,255,0.2);
+ color:white;
+ outline:none;
+}
+
+.role-input::placeholder{
+ color:#ddd;
+}
+
+/* BUTTON */
+
+.analyze-btn{
+ width:100%;
+ padding:12px;
+ border:none;
+ border-radius:10px;
+ background:#00c9a7;
+ color:white;
+ font-weight:bold;
+ cursor:pointer;
+ margin-top:15px;
+ transition:0.3s;
+}
+
+.analyze-btn:hover{
+ transform:scale(1.05);
+}
+
+/* RESULT */
+
+.result-box{
+ margin-top:20px;
+ color:white;
+}
+
+/* PROGRESS BAR */
+
+.progress{
+ width:100%;
+ background:rgba(255,255,255,0.3);
+ border-radius:20px;
+ overflow:hidden;
+ margin:10px 0;
+}
+
+.progress-bar{
+ height:20px;
+ background:#00e676;
+ text-align:center;
+ line-height:20px;
+ font-weight:bold;
+ transition:width 1s ease-in-out;
+}
+
+/* SKILLS */
+
+.skills{
+ margin-top:10px;
+}
+
+.skill-chip{
+ background:#00c9a7;
+ padding:6px 12px;
+ border-radius:20px;
+ margin:5px;
+ display:inline-block;
+ color:black;
+}
+
+/* ANIMATION */
+
+@keyframes fadeIn{
+ from{
+  opacity:0;
+  transform:scale(0.8);
+ }
+ to{
+  opacity:1;
+  transform:scale(1);
+ }
+}

@@ -1,0 +1,348 @@
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(120deg, #030711, #071427, #0b172b);
+  padding-top: 80px;
+}
+
+
+
+/* CENTER WRAPPER */
+
+.profile-wrapper {
+
+  min-height: calc(100vh - 80px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 40px 20px;
+
+}
+
+
+
+/* MAIN CARD */
+
+.profile-card {
+
+  width: 100%;
+  max-width: 900px;
+
+  margin: auto;
+
+  background: rgba(7, 20, 39, 0.95);
+
+  border-radius: 22px;
+  border: 1px solid rgba(100,255,218,0.3);
+
+  padding: 50px 60px;
+
+  box-shadow: 0 30px 70px rgba(0,0,0,0.7);
+
+  color: #e5e7eb;
+
+  backdrop-filter: blur(12px);
+}
+
+
+.profile-card h1 {
+  text-align: center;
+  color: #64ffda;
+  margin-bottom: 35px;
+}
+
+
+
+/* VIEW MODE */
+
+.profile-view div {
+
+  padding: 12px 0;
+  font-size: 16px;
+
+  border-bottom: 1px solid #1e293b;
+}
+
+
+.profile-view b {
+  color: #9fffe8;
+}
+
+
+
+/* BUTTON GROUP */
+
+.profile-btns {
+
+  display: flex;
+  gap: 15px;
+
+  margin-top: 30px;
+}
+
+
+.profile-btns button {
+
+  flex: 1;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  border: none;
+
+  font-weight: 600;
+  cursor: pointer;
+}
+
+
+.profile-btns button:first-child {
+  background: #64ffda;
+  color: #020617;
+}
+
+
+.logout-btn {
+  background: #ef4444;
+  color: white;
+}
+
+
+.logout-btn:hover {
+  background: #dc2626;
+}
+
+
+
+/* EDIT MODE */
+
+.profile-edit {
+
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+
+}
+
+
+.profile-edit .field {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.profile-edit label {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+
+
+.profile-edit input {
+
+  padding: 12px 14px;
+
+  border-radius: 10px;
+
+  border: 1px solid #2b3b4a;
+
+  background: #0b1b2a;
+
+  color: white;
+
+}
+
+
+.profile-edit input:focus {
+  outline: none;
+  border-color: #64ffda;
+}
+
+
+
+/* BUTTONS */
+
+.btn-group {
+
+  grid-column: span 2;
+
+  display: flex;
+  gap: 15px;
+
+  margin-top: 15px;
+
+}
+
+
+.btn-group button {
+
+  flex: 1;
+
+  padding: 14px;
+
+  border-radius: 12px;
+
+  border: none;
+
+  font-weight: 600;
+  cursor: pointer;
+}
+
+
+.btn-group button:first-child {
+  background: #64ffda;
+  color: #020617;
+}
+
+
+.btn-group .cancel {
+  background: transparent;
+  border: 1px solid #64ffda;
+  color: #64ffda;
+}
+
+
+/* RESPONSIVE */
+
+@media(max-width:700px){
+
+  .profile-card{
+    padding: 35px 25px;
+    width: 100%;
+    min-width: unset;
+  }
+
+  .profile-edit{
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+
+/* ================= DESKTOP RIGHT SIDE LAYOUT ================= */
+
+.profile-wrapper {
+
+  justify-content: space-between !important;
+  align-items: stretch !important;
+
+  gap: 40px;
+  flex-wrap: nowrap;
+}
+
+
+/* PROFILE LEFT */
+
+.profile-card {
+  width: 60%;
+  min-width: 550px;
+}
+
+
+/* RIGHT FEATURES */
+
+.profile-features {
+
+  width: 40%;
+  min-width: 320px;   /* 🔥 FIXED */
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  gap: 50px;
+}
+
+
+/* FEATURE CARD FULL WIDTH */
+
+.profile-feature-card{
+  width: 100%;    /* 🔥 FIXED */
+}
+
+/* ======= INTERACTIVE FEATURE CARD ======= */
+
+.profile-feature-card {
+
+  width: 100%;
+  padding: 35px;
+
+  border-radius: 22px;
+
+  background: rgba(7, 20, 39, 0.7);
+  backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(100,255,218,0.25);
+
+  cursor: pointer;
+
+  transition: all 0.35s ease;
+
+  box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+
+  position: relative;
+  overflow: hidden;
+}
+
+
+/* ICON */
+
+.feature-icon{
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+
+/* TEXT */
+
+.profile-feature-card h3{
+  color: #64ffda;
+  margin-bottom: 8px;
+}
+
+.profile-feature-card p{
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+
+/* HOVER EFFECT */
+
+.profile-feature-card:hover{
+
+  transform: translateY(-6px) scale(1.02);
+
+  box-shadow: 0 0 25px rgba(100,255,218,0.5),
+              0 20px 40px rgba(0,0,0,0.6);
+
+  border: 1px solid #64ffda;
+}
+
+
+/* CLICK PRESS EFFECT */
+
+.profile-feature-card:active{
+  transform: scale(0.96);
+}
+
+.resume-upload{
+ margin-top:15px;
+ display:flex;
+ gap:10px;
+ align-items:center;
+}
+
+.resume-btn{
+ background:#64ffda;
+ padding:5px 12px;
+ border-radius:8px;
+ text-decoration:none;
+ color:black;
+ font-size:14px;
+}
+
+.resume-btn:hover{
+ background:#2dd4bf;
+}

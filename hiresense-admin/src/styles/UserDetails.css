@@ -1,0 +1,75 @@
+.details-container{
+ position:fixed;
+ top:0;
+ left:0;
+ width:100vw;
+ height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:linear-gradient(120deg,#030711,#071427,#0b172b);
+ padding:40px;
+ z-index:999;
+}
+
+/* 🔥 CARD CENTERED */
+.details-card{
+ width:100%;
+ max-width:700px;
+ background:#0b1b2a;
+ padding:40px;
+ border-radius:20px;
+ color:white;
+ border:1px solid #64ffda;
+ animation:slideUp 0.5s ease;
+ box-shadow:0 0 20px rgba(100,255,218,0.3);
+}
+
+/* 🔥 HEADING CENTER */
+.details-card h1{
+ color:#64ffda;
+ margin-bottom:25px;
+ text-align:center;
+}
+
+/* 🔥 GRID LAYOUT */
+.details-card p{
+ display:flex;
+ justify-content:space-between;
+ border-bottom:1px solid rgba(255,255,255,0.1);
+ padding:8px 0;
+}
+
+/* 🔥 BACK BUTTON CENTER */
+.details-card button{
+ margin-top:25px;
+ background:#64ffda;
+ border:none;
+ padding:10px 20px;
+ border-radius:10px;
+ cursor:pointer;
+ display:block;
+ margin-left:auto;
+ margin-right:auto;
+}
+
+.details-card button:hover{
+ background:#2dd4bf;
+}
+
+/* 🔥 ANIMATION */
+@keyframes slideUp{
+ from{
+  transform:translateY(60px);
+  opacity:0;
+ }
+ to{
+  transform:translateY(0);
+  opacity:1;
+ }
+}
+
+@keyframes fadeIn{
+ from{opacity:0}
+ to{opacity:1}
+}

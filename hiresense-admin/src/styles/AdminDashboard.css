@@ -1,0 +1,159 @@
+.admin-container{
+
+  width:100vw;
+  min-height:100vh;
+
+  padding:40px 60px;
+
+  background:linear-gradient(120deg,#030711,#071427,#0b172b);
+
+  color:white;
+
+  box-sizing:border-box;
+}
+
+
+/* REMOVE RIGHT SCROLL BLANK */
+body{
+ overflow-x:hidden;
+}
+
+
+.admin-title{
+ color:#64ffda;
+ margin-bottom:30px;
+}
+
+
+/* TOP CARDS FULL WIDTH */
+.admin-top{
+ width:100%;
+ display:flex;
+ gap:30px;
+ margin-bottom:40px;
+}
+
+
+.admin-card{
+ flex:1;
+ padding:30px;
+ border-radius:20px;
+ background:rgba(7,20,39,0.7);
+ backdrop-filter:blur(10px);
+ border:1px solid rgba(100,255,218,0.3);
+ text-align:center;
+ transition:0.3s;
+ cursor:pointer;
+}
+
+.admin-card span{
+ font-size:40px;
+}
+
+.admin-card:hover{
+ transform:translateY(-6px);
+ box-shadow:0 0 20px #64ffda;
+}
+
+
+/* TABLE FULL WIDTH */
+.table{
+ width:100%;
+ display:flex;
+ flex-direction:column;
+ gap:15px;
+ margin-bottom:40px;
+}
+
+
+/* ROW FULL WIDTH */
+.row{
+ width:100%;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ background:#0b1b2a;
+ padding:20px;
+ border-radius:12px;
+}
+
+
+.contact-btn{
+ background:#64ffda;
+ border:none;
+ padding:6px 15px;
+ border-radius:8px;
+ cursor:pointer;
+}
+
+.contact-btn:hover{
+ background:#2dd4bf;
+}
+
+.search-box{
+ width:100%;
+ padding:18px 20px;
+ margin-bottom:30px;
+ border-radius:12px;
+ border:2px solid #64ffda;
+ background:#0b1b2a;
+ color:white;
+ font-size:16px;
+ outline:none;
+}
+
+.search-box::placeholder{
+ color:#aaa;
+}
+
+.search-box:focus{
+ box-shadow:0 0 10px #64ffda;
+}
+
+.view-btn{
+ background:#3b82f6;
+ color:white;
+ border:none;
+ padding:6px 15px;
+ border-radius:8px;
+ cursor:pointer;
+}
+
+.view-btn:hover{
+ background:#2563eb;
+}
+
+.view-btn{
+ background:#3b82f6;
+ color:white;
+ border:none;
+ padding:6px 15px;
+ border-radius:8px;
+ cursor:pointer;
+}
+
+.view-btn:hover{
+ background:#2563eb;
+}
+
+.row{
+ display:grid;
+ grid-template-columns: 1fr 2fr 150px;
+ align-items:center;
+ background:#0b1b2a;
+ padding:18px;
+ border-radius:12px;
+}
+
+.resume-btn{
+ background:#22c55e;
+ border:none;
+ padding:6px 14px;
+ border-radius:8px;
+ color:white;
+ cursor:pointer;
+}
+
+.resume-btn:hover{
+ background:#16a34a;
+}

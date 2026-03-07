@@ -1,0 +1,220 @@
+/* ================= MAIN LAYOUT ================= */
+
+.login-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: linear-gradient(120deg, #030711, #071427, #0b172b);
+}
+
+/* ================= LEFT SIDE ================= */
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+}
+
+/* ================= AUTH BOX ================= */
+
+.auth-box {
+  width: 100%;
+  max-width: 420px;
+
+  margin: auto;
+
+  background: rgba(7, 20, 39, 0.85);
+  border: 1px solid rgba(100, 255, 218, 0.25);
+  border-radius: 22px;
+
+  padding: 40px;
+
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+  color: #e5e7eb;
+
+  backdrop-filter: blur(8px);
+}
+
+/* ================= HEADINGS ================= */
+
+.auth-box h1 {
+  text-align: center;
+  color: #64ffda;
+  margin-bottom: 6px;
+  font-size: 32px;
+  letter-spacing: 0.5px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #b0c4de;
+  margin-bottom: 30px;
+  font-size: 15px;
+}
+
+/* ================= FORM FIELDS ================= */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.field label {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.field input {
+  padding: 14px;
+  border-radius: 10px;
+
+  background: #0b1b2a;
+  border: 1px solid #2b3b4a;
+
+  color: white;
+  font-size: 15px;
+
+  transition: all 0.25s ease;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: #64ffda;
+  box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.15);
+}
+
+/* ================= BUTTON ================= */
+
+.auth-box button {
+  width: 100%;
+  margin-top: 10px;
+
+  padding: 14px;
+
+  background: linear-gradient(135deg, #64ffda, #38f9d7);
+  color: #020617;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.auth-box button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(100, 255, 218, 0.4);
+}
+
+/* ================= REDIRECT ================= */
+
+.redirect {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #cbd5e1;
+}
+
+.redirect span {
+  color: #64ffda;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.redirect span:hover {
+  text-decoration: underline;
+}
+
+/* ================= RIGHT PANEL ================= */
+
+.login-info {
+  background: linear-gradient(135deg, #020617, #071427);
+
+  padding: 60px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  color: white;
+}
+
+.login-info h2 {
+  font-size: 38px;
+  color: #64ffda;
+  margin-bottom: 20px;
+}
+
+.login-info p {
+  font-size: 17px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin-bottom: 30px;
+}
+
+.login-info ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 40px;
+}
+
+.login-info li {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.quote {
+  font-style: italic;
+  color: #94a3b8;
+  border-left: 3px solid #64ffda;
+  padding-left: 15px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+/* ================= RESPONSIVE LOGIN ================= */
+
+@media (max-width: 1024px) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-info {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-box {
+    max-width: 100%;
+    padding: 24px 20px;
+  }
+
+  .auth-box h1 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .field input {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .auth-box button {
+    padding: 12px;
+    font-size: 15px;
+  }
+}
+
