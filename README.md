@@ -80,7 +80,7 @@ Admin capabilities include:
 ```
 ## 📂 Project Structure
 
-```text
+
 HireSense
 │
 ├── hiresense
