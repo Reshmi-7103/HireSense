@@ -78,23 +78,30 @@ Admin capabilities include:
 ## 📂 Project Structure
 
 ```
+## 📂 Project Structure
+
+```text
 HireSense
 │
-├── backend
-│   ├── app.py
-│   ├── routes
-│   └── requirements.txt
+├── hiresense
+│   │
+│   ├── backend
+│   │   ├── app.py
+│   │   ├── models
+│   │   ├── routes
+│   │   └── requirements.txt
+│   │
+│   └── client
+│       ├── src
+│       ├── public
+│       └── package.json
 │
-├── client
-│   ├── src
-│   ├── public
-│   └── package.json
-│
-├── admin
-│   ├── src
-│   └── package.json
-│
-└── README.md
+└── hiresense-admin
+    │
+    ├── src
+    ├── components
+    ├── pages
+    └── package.json
 ```
 
 ---
