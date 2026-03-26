@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from flask import send_from_directory
 from bson import ObjectId
 from resume_analyzer import analyze_resume
+import datetime
 
 # Load env
 load_dotenv()
@@ -24,6 +25,8 @@ users = db["users"]
 contacts = db["contacts"]
 activity = db["activity"]
 admins = db["admin"]
+# Collections ke paas (line ~15 ke aas paas)
+interviews = db["interviews"]
 
 print("✅ MongoDB Connected Successfully")
 
@@ -374,6 +377,99 @@ def analyze_resume_api(user_id):
 @app.route("/")
 def home():
     return "HireSense Backend Running 🚀"
+
+    # ---------------- SAVE / UPDATE INTERVIEW ---------------- #
+# Called after every AI reply to keep the chat in sync with DB
+ 
+@app.route("/api/interview/save", methods=["POST", "OPTIONS"])
+@cross_origin()
+def save_interview():
+    try:
+        data = request.json
+        user_id      = data.get("user_id")
+        interview_id = data.get("interview_id")   # frontend-generated string id
+        iv_type      = data.get("type")           # "technical" | "hr"
+        messages     = data.get("messages", [])
+        timestamp    = data.get("timestamp", int(datetime.datetime.utcnow().timestamp() * 1000))
+ 
+        if not user_id or not interview_id:
+            return jsonify({"success": False, "error": "user_id and interview_id required"}), 400
+ 
+        # Upsert — create if not exists, update messages if exists
+        interviews.update_one(
+            {
+                "user_id":      user_id,
+                "interview_id": interview_id
+            },
+            {
+                "$set": {
+                    "user_id":      user_id,
+                    "interview_id": interview_id,
+                    "type":         iv_type,
+                    "messages":     messages,
+                    "timestamp":    timestamp,
+                    "title": f"{'Technical' if iv_type == 'technical' else 'HR'} Interview"
+                }
+            },
+            upsert=True
+        )
+ 
+        return jsonify({"success": True})
+ 
+    except Exception as e:
+        print("SAVE INTERVIEW ERROR:", e)
+        return jsonify({"success": False, "error": "Server error"}), 500
+ 
+ 
+# ---------------- GET ALL INTERVIEWS FOR A USER ---------------- #
+ 
+@app.route("/api/interview/list/<user_id>", methods=["GET", "OPTIONS"])
+@cross_origin()
+def list_interviews(user_id):
+    try:
+        docs = list(
+            interviews.find(
+                {"user_id": user_id},
+                {"_id": 0}          # exclude mongo _id, frontend uses interview_id
+            ).sort("timestamp", -1) # newest first
+        )
+ 
+        return jsonify({"success": True, "interviews": docs})
+ 
+    except Exception as e:
+        print("LIST INTERVIEWS ERROR:", e)
+        return jsonify({"success": False, "error": "Server error"}), 500
+ 
+ 
+# ---------------- DELETE ONE INTERVIEW ---------------- #
+ 
+@app.route("/api/interview/delete", methods=["DELETE", "OPTIONS"])
+@cross_origin()
+def delete_interview():
+    if request.method == "OPTIONS":
+        return jsonify({"success": True})
+    try:
+        data         = request.json
+        user_id      = data.get("user_id")
+        interview_id = data.get("interview_id")
+ 
+        if not user_id or not interview_id:
+            return jsonify({"success": False, "error": "user_id and interview_id required"}), 400
+ 
+        result = interviews.delete_one({
+            "user_id":      user_id,
+            "interview_id": interview_id
+        })
+ 
+        if result.deleted_count == 0:
+            return jsonify({"success": False, "error": "Interview not found"}), 404
+ 
+        return jsonify({"success": True})
+ 
+    except Exception as e:
+        print("DELETE INTERVIEW ERROR:", e)
+        return jsonify({"success": False, "error": "Server error"}), 500
+ 
 
 # ---------------- RUN ---------------- #
 
