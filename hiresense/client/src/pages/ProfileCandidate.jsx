@@ -252,7 +252,7 @@ export default function ProfileCandidate() {
 
           <div
             className="profile-feature-card"
-            onClick={() => navigate("/interview-prep")}
+            onClick={() => navigate("/Interview")}
           >
             <div className="feature-icon">🎯</div>
             <h3>Interview Preparation</h3>

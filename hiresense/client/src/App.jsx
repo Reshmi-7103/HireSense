@@ -14,6 +14,7 @@ import Register from "./pages/Register";
 
 import ProfileCandidate from "./pages/ProfileCandidate";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";   // 🔥 NEW
+import Interview from "./pages/Interview";
 
 function App() {
   return (
@@ -34,6 +35,9 @@ function App() {
 
         {/* Profile */}
         <Route path="/ProfileCandidate" element={<ProfileCandidate />} />
+
+         {/* 🔥 MOCK INTERVIEW */}
+        <Route path="/Interview" element={<Interview/>} />
 
         {/* 🔥 RESUME ANALYZER */}
         <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />
