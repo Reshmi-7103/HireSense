@@ -31,7 +31,7 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         {/* Logged-in Dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/Dashboard" element={<Dashboard />} />
 
         {/* Profile */}
         <Route path="/ProfileCandidate" element={<ProfileCandidate />} />

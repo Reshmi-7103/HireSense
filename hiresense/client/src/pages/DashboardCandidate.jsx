@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Robot3D from "../components/Robot3D";
 import "../styles/DashboardCandidate.css";
+import { useNavigate } from "react-router-dom";
 
-const jobs = [
+const staticJobs = [
   { title: "Frontend Developer", desc: "React, UI, Performance", img: "/images/job1.png" },
   { title: "Backend Developer", desc: "Node, APIs, Databases", img: "/images/job2.png" },
   { title: "AI Engineer", desc: "ML, NLP, Models", img: "/images/job3.png" },
@@ -17,21 +18,59 @@ const jobs = [
 
 export default function DashboardCandidate() {
   const [search, setSearch] = useState("");
+  const [jobs, setJobs] = useState(staticJobs);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    // ❌ NOT LOGGED IN → STATIC
+    if (!user) {
+      setJobs(staticJobs);
+      return;
+    }
+
+    // ✅ LOGGED IN → CALL BACKEND
+    fetch(`http://localhost:5000/api/job-recommendations/${user._id}`)
+      .then(res => res.json())
+      .then(data => {
+
+        // ❌ NO RESUME → REDIRECT
+        if (data.no_resume) {
+          alert("Please upload resume first!");
+          navigate("/profile");
+          return;
+        }
+
+        // ✅ SHOW ML JOBS
+        if (data.success) {
+          const formatted = data.jobs.map(j => ({
+            title: j.job_title,
+            desc: j.company_name + " • " + j.location,
+            img: "/images/job1.png",
+            url: j.job_url
+          }));
+
+          setJobs(formatted);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        setJobs(staticJobs);
+      });
+
+  }, []);
 
   return (
     <div className="dashboard">
       <Navbar />
 
-      {/* HERO */}
       <section className="hero">
-        {/* carousel-bg hata diya kyunki CSS ::before use ho raha hai */}
-
-        {/* ✅ class hero-content CSS ke saath match */}
         <div className="hero-content">
           <h1 className="hero-title">Welcome to HireSense</h1>
           <p className="hero-desc">
             HireSense is your AI-powered career partner to discover jobs,
-            prepare interviews and analyze resumes smartly.
+            prepare interviews and analyze resumes .
           </p>
 
           <div className="hero-buttons">
@@ -45,10 +84,8 @@ export default function DashboardCandidate() {
         </div>
       </section>
 
-      {/* SEARCH */}
       <div className="search-wrapper">
         <div className="search-box">
-          {/* ✅ SEARCH FIXED */}
           <input
             placeholder="Search jobs..."
             value={search}
@@ -58,7 +95,6 @@ export default function DashboardCandidate() {
         </div>
       </div>
 
-      {/* JOBS */}
       <section className="jobs">
         <h2>Recommended Jobs</h2>
 
@@ -73,7 +109,15 @@ export default function DashboardCandidate() {
                 <div className="job-overlay">
                   <h3>{job.title}</h3>
                   <p>{job.desc}</p>
-                  <button>Apply</button>
+                  <button
+                    onClick={() => {
+                      if (job.url) {
+                        window.open(job.url, "_blank");
+                      }
+                    }}
+                  >
+                    Apply
+                  </button>
                 </div>
               </div>
             ))}

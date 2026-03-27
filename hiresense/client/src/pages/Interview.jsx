@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, User, Mic, MicOff, Plus, Trash2, ChevronLeft, Clock, VolumeX } from 'lucide-react';
 import Navbar from "../components/NavbarLogin";
 
+/* ─── Backend URL — change if your Flask runs on a different port ─── */
+const API = "http://localhost:5000";
+
 /* ─── Design Tokens ─── */
 const T = {
   bg:          'linear-gradient(135deg, #020810 0%, #060f1e 50%, #080d1a 100%)',
@@ -54,6 +57,11 @@ const globalStyle = `
    MAIN COMPONENT
 ════════════════════════════════════════ */
 export default function Interview() {
+  // ── Get logged-in user from localStorage (set during login) ──
+  const getUser = () => {
+    try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
+  };
+
   const [interviews, setInterviews]             = useState([]);
   const [currentInterview, setCurrentInterview] = useState(null);
   const [messages, setMessages]                 = useState([]);
@@ -64,25 +72,23 @@ export default function Interview() {
   const [liveTranscript, setLiveTranscript]     = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [deleteConfirm, setDeleteConfirm]       = useState(null);
+  const [fetchError, setFetchError]             = useState(false);
 
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   const synthRef       = useRef(null);
-  // These refs keep track of state inside recognition callbacks
-  const accumulatedRef    = useRef(''); // full confirmed text so far
-  const isListeningRef    = useRef(false); // true = user wants mic ON
+  const accumulatedRef = useRef('');
+  const isListeningRef = useRef(false);
 
   /* ─────────────────────────────────────
      SPEECH RECOGNITION — continuous mode
-     User presses mic ON  → starts capturing
-     User presses mic OFF → stops & sends
   ───────────────────────────────────── */
   useEffect(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
 
     const rec = new SR();
-    rec.continuous      = true;   // ← keep alive until we manually stop
+    rec.continuous      = true;
     rec.interimResults  = true;
     rec.lang            = 'en-US';
     rec.maxAlternatives = 1;
@@ -98,13 +104,9 @@ export default function Interview() {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) {
-          accumulatedRef.current += t + ' ';
-        } else {
-          interim += t;
-        }
+        if (e.results[i].isFinal) { accumulatedRef.current += t + ' '; }
+        else { interim += t; }
       }
-      // Show everything the user has said so far
       setLiveTranscript((accumulatedRef.current + interim).trim());
     };
 
@@ -115,17 +117,11 @@ export default function Interview() {
         setIsListening(false);
         return;
       }
-      // For other errors (network, aborted), restart if still supposed to be on
-      if (isListeningRef.current) {
-        try { rec.start(); } catch {}
-      }
+      if (isListeningRef.current) { try { rec.start(); } catch {} }
     };
 
     rec.onend = () => {
-      // Browser stopped internally — restart if user hasn't pressed stop
-      if (isListeningRef.current) {
-        try { rec.start(); } catch {}
-      }
+      if (isListeningRef.current) { try { rec.start(); } catch {} }
     };
 
     recognitionRef.current = rec;
@@ -140,6 +136,63 @@ export default function Interview() {
 
   useEffect(() => { loadInterviews(); }, []);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  /* ─────────────────────────────────────
+     BACKEND HELPERS
+  ───────────────────────────────────── */
+
+  // Fetch all interviews for this user from MongoDB
+  const loadInterviews = async () => {
+    const user = getUser();
+    if (!user?._id) return;
+    try {
+      const res  = await fetch(`${API}/api/interview/list/${user._id}`);
+      const data = await res.json();
+      if (data.success) {
+        setInterviews(data.interviews.sort((a, b) => b.timestamp - a.timestamp));
+        setFetchError(false);
+      }
+    } catch (e) {
+      console.error("loadInterviews error:", e);
+      setFetchError(true);
+    }
+  };
+
+  // Save/update an interview in MongoDB
+  const saveInterview = async (iv) => {
+    const user = getUser();
+    if (!user?._id) return;
+    try {
+      await fetch(`${API}/api/interview/save`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id:      user._id,
+          interview_id: iv.id,
+          type:         iv.type,
+          messages:     iv.messages,
+          timestamp:    iv.timestamp,
+        })
+      });
+    } catch (e) {
+      console.error("saveInterview error:", e);
+    }
+  };
+
+  // Delete an interview from MongoDB
+  const removeInterview = async (id) => {
+    const user = getUser();
+    if (!user?._id) return;
+    try {
+      await fetch(`${API}/api/interview/delete`, {
+        method:  'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user._id, interview_id: id })
+      });
+    } catch (e) {
+      console.error("removeInterview error:", e);
+    }
+  };
 
   /* ── TTS ── */
   const speak = (text) => {
@@ -156,7 +209,7 @@ export default function Interview() {
   };
   const stopSpeaking = () => { synthRef.current?.cancel(); setIsSpeaking(false); };
 
-  /* ── START mic ── */
+  /* ── Mic controls ── */
   const startListening = () => {
     if (!recognitionRef.current) {
       alert('Speech recognition not supported. Please use Chrome or Edge.');
@@ -170,22 +223,16 @@ export default function Interview() {
     setIsListening(true);
   };
 
-  /* ── STOP mic → send accumulated text ── */
   const stopListeningAndSend = () => {
     isListeningRef.current = false;
     setIsListening(false);
     try { recognitionRef.current?.stop(); } catch {}
-
     const finalText = accumulatedRef.current.trim();
     accumulatedRef.current = '';
     setLiveTranscript('');
-
-    if (finalText) {
-      handleVoiceInput(finalText);
-    }
+    if (finalText) handleVoiceInput(finalText);
   };
 
-  /* ── Toggle ── */
   const toggleListening = () => {
     if (isLoading) return;
     if (!currentInterview) {
@@ -196,29 +243,13 @@ export default function Interview() {
     isListening ? stopListeningAndSend() : startListening();
   };
 
-  /* ── Storage ── */
-  const loadInterviews = () => {
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('interview:'));
-    const data = keys
-      .map(k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } })
-      .filter(Boolean);
-    setInterviews(data.sort((a, b) => b.timestamp - a.timestamp));
-  };
-
-  /* ── AI API call ── */
+  /* ─────────────────────────────────────
+     AI CALL — Groq
+  ───────────────────────────────────── */
   const handleVoiceInput = async (voiceTranscript) => {
     if (!voiceTranscript.trim()) return;
 
     let interview = currentInterview;
-    if (!interview) {
-      const keys = Object.keys(localStorage).filter(k => k.startsWith('interview:')).sort().reverse();
-      if (keys.length) {
-        interview = JSON.parse(localStorage.getItem(keys[0]));
-        setCurrentInterview(interview);
-        setInterviewType(interview.type);
-        setMessages(interview.messages || []);
-      }
-    }
     if (!interview) return;
 
     const userMessage     = { role: 'user', content: voiceTranscript };
@@ -232,16 +263,16 @@ export default function Interview() {
         : "You are an experienced HR interviewer. Keep responses friendly and concise.";
 
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
+        method:  'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
+          Authorization:  `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'system', content: sys }, ...updatedMessages],
+          model:       'llama-3.3-70b-versatile',
+          messages:    [{ role: 'system', content: sys }, ...updatedMessages],
           temperature: 0.7,
-          max_tokens: 500
+          max_tokens:  500
         })
       });
 
@@ -251,10 +282,12 @@ export default function Interview() {
       setMessages(final);
       setTimeout(() => speak(aiMsg.content), 400);
 
+      // Update state + save to MongoDB
       const updated = { ...interview, messages: final, timestamp: Date.now() };
       setCurrentInterview(updated);
-      localStorage.setItem(`interview:${updated.id}`, JSON.stringify(updated));
-      loadInterviews();
+      await saveInterview(updated);
+      await loadInterviews(); // refresh sidebar list
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -262,13 +295,17 @@ export default function Interview() {
     }
   };
 
-  /* ── Interview Actions ── */
-  const startNewInterview = (type) => {
+  /* ─────────────────────────────────────
+     INTERVIEW ACTIONS
+  ───────────────────────────────────── */
+  const startNewInterview = async (type) => {
     stopSpeaking();
     const nw = {
-      id: Date.now().toString(), type, timestamp: Date.now(),
-      title: `${type === 'technical' ? 'Technical' : 'HR'} Interview`,
-      messages: []
+      id:        Date.now().toString(),
+      type,
+      timestamp: Date.now(),
+      title:     `${type === 'technical' ? 'Technical' : 'HR'} Interview`,
+      messages:  []
     };
     const init = {
       role: 'assistant',
@@ -281,8 +318,10 @@ export default function Interview() {
     setMessages([init]);
     setInterviewType(type);
     setTimeout(() => speak(init.content), 500);
-    localStorage.setItem(`interview:${nw.id}`, JSON.stringify(nw));
-    loadInterviews();
+
+    // Save initial message to MongoDB immediately
+    await saveInterview(nw);
+    await loadInterviews();
   };
 
   const loadInterview = (iv) => {
@@ -292,10 +331,10 @@ export default function Interview() {
     setInterviewType(iv.type);
   };
 
-  const deleteInterview = (id) => {
-    localStorage.removeItem(`interview:${id}`);
+  const deleteInterview = async (id) => {
     setDeleteConfirm(null);
-    loadInterviews();
+    await removeInterview(id);
+    await loadInterviews();
     if (currentInterview?.id === id) {
       stopSpeaking();
       setCurrentInterview(null); setMessages([]); setInterviewType(null);
@@ -303,7 +342,6 @@ export default function Interview() {
   };
 
   const goBack = () => {
-    // Make sure mic is fully stopped
     isListeningRef.current = false;
     setIsListening(false);
     try { recognitionRef.current?.stop(); } catch {}
@@ -316,7 +354,7 @@ export default function Interview() {
 
   /* ── Helpers ── */
   const formatDate = (ts) => {
-    const d = new Date(ts);
+    const d         = new Date(ts);
     const today     = new Date();
     const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
     if (d.toDateString() === today.toDateString())
@@ -333,6 +371,8 @@ export default function Interview() {
     return last.content.length > 52 ? last.content.slice(0, 52) + '…' : last.content;
   };
 
+  const user = getUser();
+
   /* ════════════════════
      RENDER
   ════════════════════ */
@@ -346,10 +386,8 @@ export default function Interview() {
         background: T.bg, overflow: 'hidden',
         fontFamily: "'DM Sans', sans-serif", color: T.text,
       }}>
-        {/* ── Top Navbar ── */}
         <Navbar />
 
-        {/* ── Sidebar + Main row ── */}
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
 
           {/* ══════════ LEFT SIDEBAR ══════════ */}
@@ -364,7 +402,7 @@ export default function Interview() {
             overflow: 'hidden', position: 'relative', zIndex: 10, flexShrink: 0,
           }}>
 
-            {/* Sidebar Header */}
+            {/* Header */}
             <div style={{
               padding: sidebarCollapsed ? '20px 0' : '22px 18px 18px',
               borderBottom: `1px solid ${T.sidebarBdr}`,
@@ -465,30 +503,73 @@ export default function Interview() {
                 }}>History</div>
               )}
 
-              {interviews.length === 0 && !sidebarCollapsed && (
-                <div style={{
-                  padding: '24px 18px', textAlign: 'center',
-                  color: T.muted, fontSize: 12, lineHeight: 1.7, opacity: 0.7,
-                }}>
+              {/* No user logged in */}
+              {!user && !sidebarCollapsed && (
+                <div style={{ padding: '20px 18px', textAlign: 'center', color: T.muted, fontSize: 11, lineHeight: 1.7, opacity: 0.7 }}>
+                  Login to save &amp; view your interview history.
+                </div>
+              )}
+
+              {/* Backend error */}
+              {user && fetchError && !sidebarCollapsed && (
+                <div style={{ padding: '16px 18px', textAlign: 'center', color: '#ff8080', fontSize: 11, lineHeight: 1.7 }}>
+                  Could not connect to backend.<br />
+                  <span
+                    onClick={loadInterviews}
+                    style={{ color: T.accent, cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Retry
+                  </span>
+                </div>
+              )}
+
+              {/* Empty state */}
+              {user && !fetchError && interviews.length === 0 && !sidebarCollapsed && (
+                <div style={{ padding: '24px 18px', textAlign: 'center', color: T.muted, fontSize: 12, lineHeight: 1.7, opacity: 0.7 }}>
                   No interviews yet.<br />Start one to see it here.
                 </div>
               )}
 
               {interviews.map((iv, idx) => (
                 <HistoryItem
-                  key={iv.id} iv={iv}
-                  isActive={currentInterview?.id === iv.id}
+                  key={iv.interview_id}
+                  iv={{ ...iv, id: iv.interview_id }} // normalize: backend uses interview_id
+                  isActive={currentInterview?.id === iv.interview_id}
                   collapsed={sidebarCollapsed}
-                  formatDate={formatDate} msgPreview={msgPreview}
-                  onLoad={() => loadInterview(iv)}
-                  onDeleteRequest={() => setDeleteConfirm(iv.id)}
-                  confirmingDelete={deleteConfirm === iv.id}
-                  onConfirmDelete={() => deleteInterview(iv.id)}
+                  formatDate={formatDate}
+                  msgPreview={msgPreview}
+                  onLoad={() => loadInterview({ ...iv, id: iv.interview_id })}
+                  onDeleteRequest={() => setDeleteConfirm(iv.interview_id)}
+                  confirmingDelete={deleteConfirm === iv.interview_id}
+                  onConfirmDelete={() => deleteInterview(iv.interview_id)}
                   onCancelDelete={() => setDeleteConfirm(null)}
                   idx={idx}
                 />
               ))}
             </div>
+
+            {/* Logged-in user indicator at bottom */}
+            {user && !sidebarCollapsed && (
+              <div style={{
+                padding: '12px 16px',
+                borderTop: `1px solid ${T.sidebarBdr}`,
+                display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+              }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: T.accentDim, border: `1px solid ${T.border}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <User size={13} color={T.accent} />
+                </div>
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: T.subtle, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user.name || user.email}
+                  </div>
+                  <div style={{ fontSize: 9, color: T.muted, letterSpacing: 1 }}>LOGGED IN</div>
+                </div>
+              </div>
+            )}
           </aside>
 
           {/* ══════════ MAIN CONTENT ══════════ */}
@@ -608,11 +689,9 @@ export default function Interview() {
                     >
                       <div style={{
                         width: 30, height: 30, borderRadius: '50%',
-                        background: msg.role === 'user'
-                          ? 'linear-gradient(135deg, #0d3a6e, #0f5499)' : T.accentDim,
+                        background: msg.role === 'user' ? 'linear-gradient(135deg, #0d3a6e, #0f5499)' : T.accentDim,
                         border: `1px solid ${T.border}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                       }}>
                         {msg.role === 'user'
                           ? <User size={13} color={T.accent} />
@@ -625,8 +704,7 @@ export default function Interview() {
                         background: msg.role === 'user' ? T.userBubble : T.aiBubble,
                         border: `1px solid ${msg.role === 'user' ? 'rgba(100,255,218,0.15)' : T.border}`,
                         fontSize: 14, lineHeight: 1.75, color: T.text,
-                        boxShadow: msg.role === 'user'
-                          ? '0 4px 20px rgba(13,58,110,0.4)' : '0 4px 20px rgba(0,0,0,0.4)',
+                        boxShadow: msg.role === 'user' ? '0 4px 20px rgba(13,58,110,0.4)' : '0 4px 20px rgba(0,0,0,0.4)',
                       }}>
                         {msg.content}
                       </div>
@@ -635,7 +713,7 @@ export default function Interview() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* ── MIC CONTROL BAR ── */}
+                {/* Mic bar */}
                 <div style={{
                   padding: '18px 28px 24px',
                   borderTop: `1px solid ${T.sidebarBdr}`,
@@ -643,7 +721,6 @@ export default function Interview() {
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
                   gap: 12, flexShrink: 0,
                 }}>
-                  {/* Live transcript — shows what user is saying in real-time */}
                   {liveTranscript && (
                     <div style={{
                       fontSize: 13, color: T.subtle, fontStyle: 'italic',
@@ -655,9 +732,7 @@ export default function Interview() {
                       "{liveTranscript}"
                     </div>
                   )}
-
                   <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                    {/* Mic button */}
                     <button
                       onClick={toggleListening}
                       disabled={isLoading}
@@ -670,46 +745,20 @@ export default function Interview() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         animation: isListening ? 'pulseRing 1.4s infinite' : 'none',
                         transition: 'all .3s',
-                        boxShadow: isListening
-                          ? `0 0 30px ${T.accentGlow}`
-                          : '0 4px 20px rgba(0,0,0,0.4)',
+                        boxShadow: isListening ? `0 0 30px ${T.accentGlow}` : '0 4px 20px rgba(0,0,0,0.4)',
                         opacity: isLoading ? 0.45 : 1,
                       }}
-                      onMouseEnter={e => {
-                        if (!isLoading && !isListening) {
-                          e.currentTarget.style.borderColor = T.accentGlow;
-                          e.currentTarget.style.background  = T.accentDim;
-                        }
-                      }}
-                      onMouseLeave={e => {
-                        if (!isListening) {
-                          e.currentTarget.style.borderColor = T.border;
-                          e.currentTarget.style.background  = 'rgba(8,18,36,0.9)';
-                        }
-                      }}
+                      onMouseEnter={e => { if (!isLoading && !isListening) { e.currentTarget.style.borderColor = T.accentGlow; e.currentTarget.style.background = T.accentDim; } }}
+                      onMouseLeave={e => { if (!isListening) { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = 'rgba(8,18,36,0.9)'; } }}
                     >
-                      {isListening
-                        ? <MicOff size={24} color={T.accent} />
-                        : <Mic    size={24} color={isLoading ? T.muted : T.accent} />
-                      }
+                      {isListening ? <MicOff size={24} color={T.accent} /> : <Mic size={24} color={isLoading ? T.muted : T.accent} />}
                     </button>
-
                     <div style={{ textAlign: 'left' }}>
-                      <div style={{
-                        fontSize: 13,
-                        color: isListening ? T.accent : T.subtle,
-                        fontWeight: 500, transition: 'color .2s',
-                      }}>
-                        {isListening
-                          ? '🎙 Listening… tap to send'
-                          : isLoading ? 'Processing…' : 'Tap mic to speak'
-                        }
+                      <div style={{ fontSize: 13, color: isListening ? T.accent : T.subtle, fontWeight: 500, transition: 'color .2s' }}>
+                        {isListening ? '🎙 Listening… tap to send' : isLoading ? 'Processing…' : 'Tap mic to speak'}
                       </div>
                       <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>
-                        {isListening
-                          ? 'Mic stays on — tap again when done'
-                          : 'Mic off — tap to start speaking'
-                        }
+                        {isListening ? 'Mic stays on — tap again when done' : 'Mic off — tap to start speaking'}
                       </div>
                     </div>
                   </div>
@@ -718,7 +767,7 @@ export default function Interview() {
             )}
           </main>
 
-        </div> {/* end sidebar+main row */}
+        </div>
       </div>
     </>
   );
@@ -766,49 +815,29 @@ function HistoryItem({ iv, isActive, collapsed, formatDate, msgPreview, onLoad, 
     >
       {confirmingDelete ? (
         <div style={{ padding: '10px 12px' }}>
-          <p style={{ fontSize: 11, color: '#ff8080', marginBottom: 8, lineHeight: 1.5 }}>
-            Delete this interview?
-          </p>
+          <p style={{ fontSize: 11, color: '#ff8080', marginBottom: 8, lineHeight: 1.5 }}>Delete this interview?</p>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              onClick={onConfirmDelete}
-              style={{
-                flex: 1, fontSize: 11, padding: '5px 0',
-                background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.4)',
-                color: '#ff8080', borderRadius: 6, cursor: 'pointer',
-                fontFamily: "'DM Sans', sans-serif", transition: 'all .15s',
-              }}
+            <button onClick={onConfirmDelete}
+              style={{ flex: 1, fontSize: 11, padding: '5px 0', background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.4)', color: '#ff8080', borderRadius: 6, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .15s' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,80,80,0.25)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,80,80,0.15)'; }}
             >Delete</button>
-            <button
-              onClick={onCancelDelete}
-              style={{
-                flex: 1, fontSize: 11, padding: '5px 0',
-                background: 'rgba(100,255,218,0.08)', border: '1px solid rgba(100,255,218,0.2)',
-                color: '#7899bb', borderRadius: 6, cursor: 'pointer',
-                fontFamily: "'DM Sans', sans-serif", transition: 'all .15s',
-              }}
+            <button onClick={onCancelDelete}
+              style={{ flex: 1, fontSize: 11, padding: '5px 0', background: 'rgba(100,255,218,0.08)', border: '1px solid rgba(100,255,218,0.2)', color: '#7899bb', borderRadius: 6, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all .15s' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#64ffda'; }}
               onMouseLeave={e => { e.currentTarget.style.color = '#7899bb'; }}
             >Cancel</button>
           </div>
         </div>
       ) : (
-        <div
-          onClick={onLoad}
-          style={{ padding: '10px 12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 5 }}
-        >
+        <div onClick={onLoad} style={{ padding: '10px 12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 5 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {iv.type === 'technical'
                 ? <MessageCircle size={11} color={isActive ? '#64ffda' : '#7899bb'} />
                 : <User          size={11} color={isActive ? '#64ffda' : '#7899bb'} />
               }
-              <span style={{
-                fontSize: 11, fontWeight: 600, letterSpacing: 0.5,
-                color: isActive ? '#64ffda' : '#a8c0d6', textTransform: 'capitalize',
-              }}>
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: isActive ? '#64ffda' : '#a8c0d6', textTransform: 'capitalize' }}>
                 {iv.type}
               </span>
             </div>
@@ -816,11 +845,7 @@ function HistoryItem({ iv, isActive, collapsed, formatDate, msgPreview, onLoad, 
               <button
                 onClick={(e) => { e.stopPropagation(); onDeleteRequest(); }}
                 title="Delete"
-                style={{
-                  background: 'none', border: 'none', color: '#7899bb', cursor: 'pointer',
-                  padding: '2px 4px', borderRadius: 4, display: 'flex', alignItems: 'center',
-                  transition: 'color .15s', animation: 'fadeIn .15s ease',
-                }}
+                style={{ background: 'none', border: 'none', color: '#7899bb', cursor: 'pointer', padding: '2px 4px', borderRadius: 4, display: 'flex', alignItems: 'center', transition: 'color .15s', animation: 'fadeIn .15s ease' }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#ff8080'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#7899bb'; }}
               >
@@ -832,11 +857,7 @@ function HistoryItem({ iv, isActive, collapsed, formatDate, msgPreview, onLoad, 
             <Clock size={9} color="#7899bb" />
             <span style={{ fontSize: 10, color: '#7899bb' }}>{formatDate(iv.timestamp)}</span>
           </div>
-          <p style={{
-            fontSize: 11, color: isActive ? '#a8c0d6' : '#5a7a95',
-            lineHeight: 1.5, marginTop: 1,
-            overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-          }}>
+          <p style={{ fontSize: 11, color: isActive ? '#a8c0d6' : '#5a7a95', lineHeight: 1.5, marginTop: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
             {msgPreview(iv)}
           </p>
         </div>
@@ -861,37 +882,16 @@ function InterviewCard({ onClick, icon, label, badge, desc }) {
         borderRadius: 20, padding: '36px 28px', cursor: 'pointer',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         textAlign: 'center', minHeight: 240, justifyContent: 'center',
-        boxShadow: hovered
-          ? '0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(100,255,218,0.12)'
-          : '0 12px 36px rgba(0,0,0,0.4)',
+        boxShadow: hovered ? '0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(100,255,218,0.12)' : '0 12px 36px rgba(0,0,0,0.4)',
         transform: hovered ? 'translateY(-8px) scale(1.02)' : 'none',
-        transition: 'all .3s cubic-bezier(.4,0,.2,1)',
-        animation: 'fadeUp .6s ease both',
+        transition: 'all .3s cubic-bezier(.4,0,.2,1)', animation: 'fadeUp .6s ease both',
       }}
     >
-      <div style={{
-        width: 68, height: 68, borderRadius: '50%',
-        background: 'rgba(100,255,218,0.08)', border: '1px solid rgba(99,255,218,0.18)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
-        boxShadow: hovered ? '0 0 24px rgba(100,255,218,0.3)' : 'none',
-        transition: 'box-shadow .3s',
-      }}>
+      <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'rgba(100,255,218,0.08)', border: '1px solid rgba(99,255,218,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18, boxShadow: hovered ? '0 0 24px rgba(100,255,218,0.3)' : 'none', transition: 'box-shadow .3s' }}>
         {icon}
       </div>
-      <h3 style={{
-        fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18,
-        color: '#64ffda', marginBottom: 8,
-        textShadow: hovered ? '0 0 16px rgba(100,255,218,0.4)' : 'none',
-        transition: 'text-shadow .3s',
-      }}>
-        {label}
-      </h3>
-      <span style={{
-        fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase',
-        color: '#7899bb', marginBottom: 10, fontWeight: 600,
-      }}>
-        {badge}
-      </span>
+      <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 18, color: '#64ffda', marginBottom: 8, textShadow: hovered ? '0 0 16px rgba(100,255,218,0.4)' : 'none', transition: 'text-shadow .3s' }}>{label}</h3>
+      <span style={{ fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: '#7899bb', marginBottom: 10, fontWeight: 600 }}>{badge}</span>
       <p style={{ color: '#5a7a95', fontSize: 12, lineHeight: 1.7 }}>{desc}</p>
     </div>
   );
@@ -909,23 +909,13 @@ function SidebarBtn({ icon, label, collapsed, onClick, title }) {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   };
   return collapsed ? (
-    <button
-      title={title} onClick={onClick}
-      style={{ ...base, width: '100%', height: 36, borderRadius: 8 }}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-    >{icon}</button>
+    <button title={title} onClick={onClick} style={{ ...base, width: '100%', height: 36, borderRadius: 8 }}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>{icon}</button>
   ) : (
-    <button
-      onClick={onClick}
-      style={{
-        ...base, width: '100%', gap: 8, justifyContent: 'flex-start',
-        padding: '9px 14px', borderRadius: 10,
-        fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif",
-      }}
+    <button onClick={onClick}
+      style={{ ...base, width: '100%', gap: 8, justifyContent: 'flex-start', padding: '9px 14px', borderRadius: 10, fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-    >
-      {icon}{label}
-    </button>
+    >{icon}{label}</button>
   );
 }
 
@@ -936,11 +926,7 @@ function LoadingDots() {
   return (
     <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
       {[0, 1, 2].map(i => (
-        <span key={i} style={{
-          width: 5, height: 5, borderRadius: '50%', background: '#64ffda',
-          display: 'inline-block',
-          animation: `dotPulse 1.1s ${i * 0.18}s infinite alternate`,
-        }} />
+        <span key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: '#64ffda', display: 'inline-block', animation: `dotPulse 1.1s ${i * 0.18}s infinite alternate` }} />
       ))}
     </span>
   );
