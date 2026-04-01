@@ -3,11 +3,18 @@ from flask_cors import CORS, cross_origin
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from bson import ObjectId
-from resume_analyzer import analyze_resume
-from job_recommender import recommend_jobs          # ← your ML module
-import bcrypt
-import datetime
+import sys
 import os
+import datetime
+
+# Add utils directory to path for imports
+sys.path.append(os.path.join(os.path.dirname(__file__), 'utils'))
+
+# Import your modules
+from resume_analyzer import ResumeAnalyzer
+from job_recommender import recommend_jobs
+import bcrypt
+import json
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 
@@ -25,11 +32,16 @@ contacts   = db["contacts"]
 activity   = db["activity"]
 admins     = db["admin"]
 interviews = db["interviews"]
+resume_analyses = db["resume_analyses"]  # New collection for storing analysis results
 
 UPLOAD_FOLDER = "resumes"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Initialize resume analyzer
+resume_analyzer = ResumeAnalyzer(job_data_path="D:\\HireSense 3.0\\HireSense\\hiresense\\backend\\utils\\cleaned_job_posts.csv")
+
 print("✅ MongoDB Connected Successfully")
+print("✅ Resume Analyzer Initialized")
 
 # ─── REGISTER ─────────────────────────────────────────────────────────────────
 
@@ -229,33 +241,109 @@ def upload_resume(user_id):
 def get_resume(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
-# ─── RESUME ANALYSIS ──────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════
+# ║                    RESUME ANALYSIS SECTION (UPDATED)                     ║
+# ═══════════════════════════════════════════════════════════════════════════
 
 @app.route("/api/analyze-resume/<user_id>", methods=["POST"])
 @cross_origin()
 def analyze_resume_api(user_id):
+    """
+    Comprehensive resume analysis with ATS scoring, keyword matching, and recommendations
+    """
     try:
-        role = request.form.get("role")
         if "resume" not in request.files:
-            return jsonify({"success": False, "error": "No Resume Uploaded"}), 400
+            return jsonify({"success": False, "error": "No resume file provided"}), 400
 
-        file      = request.files["resume"]
-        ext       = file.filename.split(".")[-1]
-        filename  = f"{user_id}_analysis.{ext}"
+        file = request.files["resume"]
+        
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No file selected"}), 400
+        
+        ext = file.filename.split(".")[-1].lower()
+        if ext not in ["pdf", "docx"]:
+            return jsonify({"success": False, "error": "Only PDF and DOCX files are supported"}), 400
+        
+        filename = f"{user_id}_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
         save_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(save_path)
-
-        result = analyze_resume(save_path, role)
-        return jsonify({"success": True, "analysis": result})
-
+        
+        job_description = request.form.get("job_description", None)
+        required_skills = request.form.get("required_skills", None)
+        
+        if required_skills:
+            try:
+                required_skills = json.loads(required_skills)
+            except:
+                required_skills = [s.strip() for s in required_skills.split(",")]
+        
+        # Call analyzer with role parameter
+        analysis_result = resume_analyzer.analyze_resume(
+            file_path=save_path,
+            role=job_description or required_skills
+        )
+        
+        # Generate report
+        report = resume_analyzer.generate_report(analysis_result)
+        
+        # Save to database - using correct attribute names from refactored analyzer
+        analysis_record = {
+            "user_id": user_id,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc),
+            "filename": filename,
+            "scores": {
+                "ats_compatibility": analysis_result.ats_score,
+                "job_match_score": analysis_result.job_match_score,
+                "overall_score": analysis_result.overall_score
+            },
+            "skills_gap": {
+                "match_percentage": analysis_result.skills_match_score,
+                "matched_skills": analysis_result.matched_skills,
+                "missing_skills": analysis_result.missing_skills
+            },
+            "report": report
+        }
+        
+        resume_analyses.insert_one(analysis_record)
+        
+        # Clean up
+        try:
+            os.remove(save_path)
+        except:
+            pass
+        
+        # Return response with correct field names
+        return jsonify({
+            "success": True,
+            "analysis": {
+                "report": report,
+                "scores": {
+                    "ats_compatibility": analysis_result.ats_score,
+                    "job_match_rate": analysis_result.job_match_score,
+                    "ranking_score": analysis_result.overall_score
+                },
+                "skills_analysis": {
+                    "matched_skills": analysis_result.matched_skills,
+                    "missing_skills": analysis_result.missing_skills,
+                    "match_percentage": analysis_result.skills_match_score
+                },
+                "content_issues": {
+                    "grammar_errors": len(analysis_result.grammar_errors),
+                    "grammar_details": analysis_result.grammar_errors[:3],  # Show first 3 errors with details
+                    "formatting_issues": analysis_result.formatting_issues
+                },
+                "recommendations": analysis_result.recommendations[:5],
+                "feedback": analysis_result.feedback
+            }
+        }), 200
+        
     except Exception as e:
         print("ANALYSIS ERROR:", e)
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
 # ─── RECOMMEND JOBS (ML) ──────────────────────────────────────────────────────
-# POST  /api/recommend-jobs/<user_id>
-# Body  : multipart/form-data  →  field "resume" (PDF / DOCX file)
-# Returns: { success, jobs: [ { job_title, company_name, location, job_url, match_score } ] }
 
 @app.route("/api/recommend-jobs/<user_id>", methods=["POST", "OPTIONS"])
 @cross_origin()
@@ -279,10 +367,14 @@ def recommend_jobs_api(user_id):
         save_path     = os.path.join(UPLOAD_FOLDER, temp_filename)
         file.save(save_path)
 
-        # ── Call your ML model ──────────────────────────────────────────────
+        # Call your ML model
         jobs = recommend_jobs(save_path, top_n=10)
-        # jobs is a list of dicts: job_title, company_name, location, job_url, match_score
-        # ───────────────────────────────────────────────────────────────────
+        
+        # Clean up
+        try:
+            os.remove(save_path)
+        except:
+            pass
 
         return jsonify({"success": True, "jobs": jobs})
 

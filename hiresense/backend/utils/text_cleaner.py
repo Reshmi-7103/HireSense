@@ -2,12 +2,21 @@ import re
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
-STOP_WORDS = nlp.Defaults.stop_words
 
 def clean_text(text):
-    text = text.replace('\n', ' ')   
     text = text.lower()
+
+    # Remove special chars
     text = re.sub(r'[^a-z0-9\s]', ' ', text)
+
+    # Fix merged words issue
+    text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
+
+    # Remove extra spaces
     text = re.sub(r'\s+', ' ', text).strip()
-    text = " ".join(word for word in text.split() if word not in STOP_WORDS)
-    return text
+
+    # Tokenize and remove stopwords
+    doc = nlp(text)
+    clean_words = [token.text for token in doc if not token.is_stop and len(token.text) > 2]
+
+    return " ".join(clean_words)
