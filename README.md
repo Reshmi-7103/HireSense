@@ -109,17 +109,6 @@ MONGO_URL=mongodb://localhost:27017/hiresense
 | POST | /api/admin-login | Admin login |
 | GET | /api/admin-data | Dashboard data |
 
----
-
-## Resume Analysis Output
-
-| Metric | Description |
-|--------|-------------|
-| ATS Score | Formatting and structure compatibility |
-| Job Match | Similarity with target job role |
-| Skills Match | Percentage of required skills found |
-| Grammar Errors | Detailed issues with line numbers |
-| Recommendations | Actionable improvement suggestions |
 
 ---
 
