@@ -1,172 +1,115 @@
 # HireSense 🚀
 
-**AI-Powered Career Assistance Platform**
+**Intelligent Support System for Job Seekers**
 
-HireSense is a web-based platform designed to help job seekers improve their employability through **AI-driven tools** such as resume analysis, mock interview preparation, and personalized job recommendations.
-
-The platform also includes a **separate admin dashboard** that allows administrators to manage users, monitor activity, and resolve user queries.
+HireSense is an AI-powered web platform designed to help job seekers improve their employability through intelligent tools including resume analysis, mock interview preparation, and personalized job recommendations.
 
 ---
 
-## ✨ Key Features
+## Overview
 
-### 1. Resume Analyzer 📄
-
-Users can upload their resumes and receive feedback to improve their chances of getting shortlisted.
-The system analyzes resumes and provides suggestions for improvement.
-
-### 2. AI Mock Interview Preparation 🤖
-
-HireSense provides an AI-powered interview preparation system where:
-
-* Users can practice **technical interviews**
-* Users can practice **HR interviews**
-* AI simulates an interviewer and helps users prepare for real interview scenarios
-
-### 3. Job Recommendation System 💼
-
-After login, users receive **personalized job recommendations** on their dashboard based on their profile and resume.
+The platform bridges the gap between job seekers and career opportunities by providing data-driven insights and interactive preparation tools. It features a user-facing application for job seekers and a dedicated admin dashboard for platform management.
 
 ---
 
-## 👤 User Interface
+## Key Features
 
-The user side of the platform provides the following functionalities:
+### Resume Analyzer 📄
+Upload resumes in PDF or DOCX format and receive comprehensive analysis including:
+- ATS compatibility scoring
+- Skills gap analysis
+- Keyword matching against job descriptions
+- Grammar and formatting issue detection
+- Actionable improvement recommendations
 
-* User registration and login
-* Personalized **job recommendations on the home page**
-* Resume upload and **resume analysis**
-* **AI-based mock interview practice** (Technical + HR)
-* Profile setup and profile update
-* Ability to **raise queries or support requests**
+### AI Mock Interview Preparation 🤖
+Practice interview skills with AI-powered simulations:
+- Technical interview preparation
+- HR interview practice
+- Real-time conversational interaction
+- Interview history tracking
 
----
+### Job Recommendation System 💼
+Receive personalized job recommendations based on:
+- Resume content analysis
+- Skills matching
+- Job role preferences
 
-## 🛠 Admin Dashboard
-
-HireSense also includes an **Admin Interface** for platform management.
-
-Admin capabilities include:
-
-* View all registered users
-* Monitor number of users logged in
-* Access and review user resumes
-* Manage and resolve user queries
-* Monitor overall platform activity
-
----
-
-## 🧑‍💻 Tech Stack
-
-**Frontend**
-
-* React.js
-* Vite
-* CSS
-
-**Backend**
-
-* Python (Flask)
-
-**Database**
-
-* MongoDB
-
+### Admin Dashboard
+Manage platform operations with:
+- User management and activity monitoring
+- Resume review access
+- Query handling and resolution
+- Platform analytics
 
 ---
 
-## 📂 Project Structure
+## Technology Stack 🧑‍💻 
 
-```
-## 📂 Project Structure
+| Layer | Technology |
+|-------|------------|
+| Frontend | React.js, Vite, CSS |
+| Backend | Python, Flask |
+| Database | MongoDB |
+| ML/NLP | spaCy, scikit-learn, language-tool-python |
 
+---
 
-HireSense
+## Project Structure 📂
+HireSense/
 │
-├── hiresense
-│   │
-│   ├── backend
-│   │   ├── app.py
-│   │   ├── models
-│   │   ├── routes
-│   │   └── requirements.txt
-│   │
-│   └── client
-│       ├── src
-│       ├── public
-│       └── package.json
+├── backend/ # Flask API server
+│ ├── app.py # Main application
+│ ├── resume_analyzer.py # Resume analysis logic
+│ ├── job_recommender.py # Job matching
+│ ├── requirements.txt
+│ ├── utils/ # Utility modules
+│ └── resumes/ # Uploaded files
 │
-└── hiresense-admin
-    │
-    ├── src
-    ├── components
-    ├── pages
-    └── package.json
-```
+├── client/ # User React app
+│ ├── src/
+│ └── package.json
+│
+└── hiresense-admin/ # Admin React app
+├── src/
+└── package.json
+
 
 ---
 
-## ⚙️ Installation & Setup
+## Installation
 
-### 1. Clone the repository
+### Prerequisites
+- Python 3.10 or higher
+- Node.js 18 or higher
+- MongoDB instance
 
-```
-git clone https://github.com/Reshmi-7103/HireSense.git
-cd HireSense
-```
+### Client Setup
 
----
-
-### 2. Backend Setup
-
-```
-cd backend
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
-```
-
----
-
-### 3. Client Setup
-
-```
 cd client
 npm install
 npm run dev
-```
 
----
+### Backend Setup
 
-### 4. Admin Panel Setup
+```bash
+- cd backend
+- python -m venv venv
+- source venv/bin/activate      # On Windows: venv\Scripts\activate
+- pip install -r requirements.txt
+- python -m spacy download en_core_web_sm
+- python app.py
 
-```
-cd admin
-npm install
-npm run dev
-```
+### Author
+- Reshmi Krushnali Nandini Final Year Information Technology Student
 
----
+### Future Enhancements
 
-## 🌟 Future Enhancements
+- Resume version tracking and improvement history
+- Interview performance analytics and feedback
+- Job application tracking dashboard
+- Email notifications for new job matches
+- Export analysis reports as PDF
 
-* AI-based resume scoring
-* Interview performance feedback
-* Job application tracking
-* Email notifications for job recommendations
-
----
-
-## 👩‍💻 Author
-
-**Reshmi**
-**Krushnali**
-**Nandini**
-Final Year Information Technology Student
-
----
-
-## 📌 Project Purpose
-
-This project was developed as a **career assistance platform** to help students and job seekers prepare for interviews, improve their resumes, and discover relevant job opportunities.
+### License
+- This project is developed for educational purposes as part of the Final Year Information Technology program.
