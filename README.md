@@ -1,50 +1,24 @@
-# HireSense 🚀
+Here's the complete README.md in one stroke - copy this entire block:
+
+```markdown
+# HireSense
 
 **Intelligent Support System for Job Seekers**
 
-HireSense is an AI-powered web platform designed to help job seekers improve their employability through intelligent tools including resume analysis, mock interview preparation, and personalized job recommendations.
+AI-powered platform for resume analysis, mock interviews, and job recommendations.
 
 ---
 
-## Overview
+## Features
 
-The platform bridges the gap between job seekers and career opportunities by providing data-driven insights and interactive preparation tools. It features a user-facing application for job seekers and a dedicated admin dashboard for platform management.
-
----
-
-## Key Features
-
-### Resume Analyzer 📄
-Upload resumes in PDF or DOCX format and receive comprehensive analysis including:
-- ATS compatibility scoring
-- Skills gap analysis
-- Keyword matching against job descriptions
-- Grammar and formatting issue detection
-- Actionable improvement recommendations
-
-### AI Mock Interview Preparation 🤖
-Practice interview skills with AI-powered simulations:
-- Technical interview preparation
-- HR interview practice
-- Real-time conversational interaction
-- Interview history tracking
-
-### Job Recommendation System 💼
-Receive personalized job recommendations based on:
-- Resume content analysis
-- Skills matching
-- Job role preferences
-
-### Admin Dashboard
-Manage platform operations with:
-- User management and activity monitoring
-- Resume review access
-- Query handling and resolution
-- Platform analytics
+- **Resume Analyzer** - Upload resume, get ATS score, skills gap analysis, grammar check, and improvement suggestions
+- **AI Mock Interview** - Practice technical and HR interviews with AI
+- **Job Recommendations** - Personalized job suggestions based on resume
+- **Admin Dashboard** - Manage users, monitor activity, resolve queries
 
 ---
 
-## Technology Stack 🧑‍💻 
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -55,25 +29,27 @@ Manage platform operations with:
 
 ---
 
-## Project Structure 📂
+## Project Structure
+
+```
 HireSense/
 │
-├── backend/ # Flask API server
-│ ├── app.py # Main application
-│ ├── resume_analyzer.py # Resume analysis logic
-│ ├── job_recommender.py # Job matching
-│ ├── requirements.txt
-│ ├── utils/ # Utility modules
-│ └── resumes/ # Uploaded files
+├── backend/
+│   ├── app.py
+│   ├── resume_analyzer.py
+│   ├── job_recommender.py
+│   ├── requirements.txt
+│   ├── utils/
+│   └── resumes/
 │
-├── client/ # User React app
-│ ├── src/
-│ └── package.json
+├── client/
+│   ├── src/
+│   └── package.json
 │
-└── hiresense-admin/ # Admin React app
-├── src/
-└── package.json
-
+└── hiresense-admin/
+    ├── src/
+    └── package.json
+```
 
 ---
 
@@ -84,26 +60,83 @@ HireSense/
 - Node.js 18 or higher
 - MongoDB instance
 
-### Client Setup
-
-cd client
-npm install
-npm run dev
-
 ### Backend Setup
 
 ```bash
-- cd backend
-- python -m venv venv
-- source venv/bin/activate      # On Windows: venv\Scripts\activate
-- pip install -r requirements.txt
-- python -m spacy download en_core_web_sm
-- python app.py
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+python app.py
+```
 
-### Author
-- Reshmi Krushnali Nandini Final Year Information Technology Student
+### Client Setup
 
-### Future Enhancements
+```bash
+cd client
+npm install
+npm run dev
+```
+
+### Admin Setup
+
+```bash
+cd hiresense-admin
+npm install
+npm run dev
+```
+
+---
+
+## Environment Variables
+
+Create `.env` in `backend/` folder:
+
+```
+MONGO_URL=mongodb://localhost:27017/hiresense
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/register | User registration |
+| POST | /api/login | User login |
+| POST | /api/analyze-resume/<user_id> | Resume analysis |
+| POST | /api/recommend-jobs/<user_id> | Job recommendations |
+| POST | /api/interview/save | Save interview session |
+| GET | /api/interview/list/<user_id> | Get interview history |
+| POST | /api/admin-login | Admin login |
+| GET | /api/admin-data | Dashboard data |
+
+---
+
+## Resume Analysis Output
+
+| Metric | Description |
+|--------|-------------|
+| ATS Score | Formatting and structure compatibility |
+| Job Match | Similarity with target job role |
+| Skills Match | Percentage of required skills found |
+| Grammar Errors | Detailed issues with line numbers |
+| Recommendations | Actionable improvement suggestions |
+
+---
+
+## Contributors
+
+- Reshmi
+- Krushnali
+- Nandini
+
+*Final Year Information Technology Students*
+
+---
+
+## Future Enhancements
 
 - Resume version tracking and improvement history
 - Interview performance analytics and feedback
@@ -111,5 +144,10 @@ npm run dev
 - Email notifications for new job matches
 - Export analysis reports as PDF
 
-### License
-- This project is developed for educational purposes as part of the Final Year Information Technology program.
+---
+
+## License
+
+This project is developed for educational purposes as part of the Final Year Information Technology program.
+
+---
