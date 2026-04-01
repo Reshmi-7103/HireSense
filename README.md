@@ -56,6 +56,7 @@ Manage platform operations with:
 ---
 
 ## Project Structure 📂
+---
 HireSense/
 │
 ├── backend/ # Flask API server
@@ -73,7 +74,7 @@ HireSense/
 └── hiresense-admin/ # Admin React app
 ├── src/
 └── package.json
-
+---
 
 ---
 
@@ -86,9 +87,9 @@ HireSense/
 
 ### Client Setup
 
-cd client
-npm install
-npm run dev
+- cd client
+- npm install
+- npm run dev
 
 ### Backend Setup
 
@@ -110,6 +111,6 @@ npm run dev
 - Job application tracking dashboard
 - Email notifications for new job matches
 - Export analysis reports as PDF
-
+---
 ### License
 - This project is developed for educational purposes as part of the Final Year Information Technology program.
