@@ -14,5 +14,5 @@ def extract_text_from_pdf(pdf_path):
     return text
 
 if __name__ == "__main__":
-    sample_path = "../uploads/Resume_Jagtap.pdf"  # adjust path
+    sample_path = "..\\D:\\HireSense 3.0\\HireSense\\hiresense\\backend\\resumes\\Resume_Jagtap.pdf"  # adjust path
     extract_text_from_pdf(sample_path)
