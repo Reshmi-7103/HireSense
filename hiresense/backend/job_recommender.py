@@ -20,12 +20,15 @@ API_KEY = os.getenv("RAPIDAPI_KEY")
 # ─────────────────────────────────────────────
 CSV_PATH = os.path.join(os.path.dirname(__file__), "jobs.csv")
 
+
 def load_jobs():
     try:
         df = pd.read_csv(CSV_PATH)
     except:
         print("⚠️ jobs.csv not found")
-        return pd.DataFrame(columns=["job_title","company_name","location","job_url","text_data"])
+        return pd.DataFrame(
+            columns=["job_title", "company_name", "location", "job_url", "text_data"]
+        )
 
     # ✅ SAFE column handling
     if "job_description" not in df.columns:
@@ -41,14 +44,11 @@ def load_jobs():
     df["job_title"] = df.get("job_title", "").fillna("")
     df["location"] = df.get("location", "").fillna("").str.lower()
 
-    df["text_data"] = (
-        df["job_title"] + " " +
-        df["job_description"] + " " +
-        df["skills"]
-    )
+    df["text_data"] = df["job_title"] + " " + df["job_description"] + " " + df["skills"]
 
     print(f"✅ Loaded {len(df)} jobs")
     return df
+
 
 jobs_df = load_jobs()
 
@@ -61,17 +61,18 @@ DOMAIN_TO_ROLE = {
     "engineering": "mechanical engineer",
     "marketing": "digital marketing",
     "hr": "human resources",
-    "design": "ui ux designer"
+    "design": "ui ux designer",
 }
 
 DOMAIN_KEYWORDS = {
-    "tech": ["python","java","react","node","flask","django","api"],
-    "data": ["pandas","numpy","sql","tableau"],
-    "engineering": ["mechanical","civil","electrical"],
-    "marketing": ["seo","marketing","branding"],
-    "hr": ["recruitment","hr"],
-    "design": ["figma","ui","ux"]
+    "tech": ["python", "java", "react", "node", "flask", "django", "api"],
+    "data": ["pandas", "numpy", "MySQL", "tableau"],
+    "engineering": ["mechanical", "civil", "electrical"],
+    "marketing": ["seo", "marketing", "branding"],
+    "hr": ["recruitment", "hr"],
+    "design": ["figma", "ui", "ux"],
 }
+
 
 # ─────────────────────────────────────────────
 # 🌐 LIVE JOB FETCH (FIXED)
@@ -81,18 +82,15 @@ def fetch_live_jobs(role, location="mumbai"):
 
     # 🔥 CLEAN QUERY (IMPORTANT FIX)
     querystring = {
-        "query": role,                  # only role (NOT sentence)
-        "location": location,           # separate location
+        "query": role,  # only role (NOT sentence)
+        "location": location,  # separate location
         "page": "1",
         "num_pages": "1",
-        "country": "in",                # 🇮🇳 CRITICAL
-        "date_posted": "month"          # recent jobs
+        "country": "in",  # 🇮🇳 CRITICAL
+        "date_posted": "month",  # recent jobs
     }
 
-    headers = {
-        "x-rapidapi-key": API_KEY,
-        "x-rapidapi-host": "jsearch.p.rapidapi.com"
-    }
+    headers = {"x-rapidapi-key": API_KEY, "x-rapidapi-host": "jsearch.p.rapidapi.com"}
 
     jobs = []
 
@@ -107,16 +105,19 @@ def fetch_live_jobs(role, location="mumbai"):
             return pd.DataFrame()
 
         for job in data["data"]:
-            jobs.append({
-                "job_title": job.get("job_title", ""),
-                "company_name": job.get("employer_name", ""),
-                "location": (job.get("job_city") or location).lower(),
-                "job_url": job.get("job_apply_link", ""),
-                "text_data": (
-                    job.get("job_title", "") + " " +
-                    (job.get("job_description") or "")
-                )
-            })
+            jobs.append(
+                {
+                    "job_title": job.get("job_title", ""),
+                    "company_name": job.get("employer_name", ""),
+                    "location": (job.get("job_city") or location).lower(),
+                    "job_url": job.get("job_apply_link", ""),
+                    "text_data": (
+                        job.get("job_title", "")
+                        + " "
+                        + (job.get("job_description") or "")
+                    ),
+                }
+            )
 
         print(f"🌐 Live jobs fetched: {len(jobs)}")
 
@@ -124,6 +125,7 @@ def fetch_live_jobs(role, location="mumbai"):
         print("❌ API Error:", e)
 
     return pd.DataFrame(jobs)
+
 
 # ─────────────────────────────────────────────
 # 🧠 DOMAIN DETECTION
@@ -145,10 +147,12 @@ def detect_domain(text):
     print(f"✅ Domain: {best}")
     return best
 
+
 # ─────────────────────────────────────────────
 # 📍 LOCATION DETECTION
 # ─────────────────────────────────────────────
-CITIES = ["mumbai","delhi","bangalore","pune","hyderabad","chennai"]
+CITIES = ["mumbai", "delhi", "bangalore", "pune", "hyderabad", "chennai"]
+
 
 def detect_location(text):
     text = text.lower()
@@ -160,6 +164,7 @@ def detect_location(text):
 
     print("📍 Default location: India")
     return "India"
+
 
 # ─────────────────────────────────────────────
 # 📄 RESUME PARSER
@@ -185,6 +190,7 @@ def extract_resume_text(file_path):
     text = text.lower()
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     return re.sub(r"\s+", " ", text)
+
 
 # ─────────────────────────────────────────────
 # 🚀 MAIN FUNCTION
@@ -227,7 +233,7 @@ def recommend_jobs(file_path, top_n=10):
     top_idx = scores.argsort()[::-1][:top_n]
 
     result = combined_df.iloc[top_idx][
-        ["job_title","company_name","location","job_url"]
+        ["job_title", "company_name", "location", "job_url"]
     ].copy()
 
     result["match_score"] = (scores[top_idx] * 100).round(1)
