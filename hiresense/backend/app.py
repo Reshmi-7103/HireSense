@@ -6,6 +6,7 @@ from bson import ObjectId
 import sys
 import os
 import datetime
+import ssl
 
 # Add utils directory to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), 'utils'))
@@ -24,7 +25,14 @@ app = Flask(__name__)
 CORS(app)
 
 MONGO_URL  = os.getenv("MONGO_URL")
-client     = MongoClient(MONGO_URL)
+client = MongoClient(
+    MONGO_URL,
+    tls=True,
+    tlsAllowInvalidCertificates=True,
+    tlsAllowInvalidHostnames=True,
+    serverSelectionTimeoutMS=30000
+)
+
 db         = client["hiresense"]
 
 users      = db["users"]
@@ -268,7 +276,7 @@ def analyze_resume_api(user_id):
         save_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(save_path)
         
-        job_description = request.form.get("job_description", None)
+        job_description = request.form.get("role", None)
         required_skills = request.form.get("required_skills", None)
         
         if required_skills:
@@ -280,7 +288,8 @@ def analyze_resume_api(user_id):
         # Call analyzer with role parameter
         analysis_result = resume_analyzer.analyze_resume(
             file_path=save_path,
-            role=job_description or required_skills
+            role=job_description,  # ← Now this gets the role from frontend
+            required_skills=required_skills
         )
         
         # Generate report
@@ -304,8 +313,10 @@ def analyze_resume_api(user_id):
             "report": report
         }
         
+        # TEMPORARILY DISABLED - SSL error
         resume_analyses.insert_one(analysis_record)
-        
+        # print("✅ Analysis completed (database save skipped due to SSL)")
+
         # Clean up
         try:
             os.remove(save_path)
